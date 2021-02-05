@@ -1,51 +1,36 @@
 import numpy as np
-from flask import Flask, render_template
-from flask_socketio import SocketIO, emit
+from flask import Flask, render_template, url_for, jsonify, request, json
 from celery import Celery
 from parts_composer import compose_zemin, compose_nakarat, compose_meyan, song_2_mus
 
+# 1- redis-server
+# 2- celery worker -A composer_server.celery --loglevel=info
+# 3- python composer_server.py
+
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'lorem_ipman'
-socketio = SocketIO(app, async_mode='eventlet')
+app.config['SECRET_KEY'] = 'lorem-ipman'
+
+app.config['CELERY_BROKER_URL'] = 'redis://localhost:6379/0'
+app.config['CELERY_RESULT_BACKEND'] = 'redis://localhost:6379/0'
+
+celery = Celery(app.name, broker=app.config['CELERY_BROKER_URL'])
+celery.conf.update(app.config)
 
 
-def make_celery(appl):
-    celery = Celery(appl.import_name, backend=appl.config['CELERY_RESULT_BACKEND'],
-                    broker=appl.config['CELERY_BROKER_URL'])
-    celery.conf.update(appl.config)
-    task_base = celery.Task
+@celery.task(bind=True)
+def compose(self, notes):
+    post_obj = json.loads(notes)
+    makam = post_obj['makam']
+    notes = post_obj['notes']
+    self.update_state(state='PROGRESS', meta={'status': 'begin'})
 
-    class ContextTask(task_base):
-        abstract = True
-
-        def __call__(self, *args, **kwargs):
-            with appl.app_context():
-                return task_base.__call__(self, *args, **kwargs)
-
-    # celery.Task = ContextTask
-    return celery
-
-
-@socketio.on('start_composing', namespace='/compose')
-def start_composing(data):
-    print(data)
-    print('---- thread started! ----')
-    print('---- thread started! ----')
-    print('---- thread started! ----')
-
-
-def start_composing_bg(data):
     try:
-        makam = data['makam']
-        notes = data['notes']
-
         res = compose_zemin(makam, notes)
         if res['type'] == 'error':
-            socketio.emit('composition_status', {'type': 'error', 'section': 'zemin'}, namespace='/compose')
-            return
+            self.update_state(state='ERROR', meta={'status': 'zemin'})
+            return {'status': 'ERROR', 'result': 'zemin'}
 
-        socketio.emit('composition_status', {'type': 'composed', 'section': 'zemin'}, namespace='/compose')
-        print('zemin emit')
+        self.update_state(state='PROGRESS', meta={'status': 'zemin'})
 
         makam = res['makam']
         dir_path = res['dir_path']
@@ -58,22 +43,20 @@ def start_composing_bg(data):
 
         res = compose_nakarat(makam, dir_path, set_size, measure_cnt, note_dict, oh_manager, time_sig, part_a)
         if res['type'] == 'error':
-            socketio.emit('composition_status', {'type': 'error', 'section': 'nakarat'}, namespace='/compose')
-            return
+            self.update_state(state='ERROR', meta={'status': 'nakarat'})
+            return {'status': 'ERROR', 'result': 'nakarat'}
 
-        socketio.emit('composition_status', {'type': 'composed', 'section': 'nakarat'}, namespace='/compose')
-        print('nakarat emit')
+        self.update_state(state='PROGRESS', meta={'status': 'nakarat'})
 
         part_b = res['part_b']
         second_rep = res['second_rep']
 
         res = compose_meyan(makam, dir_path, set_size, measure_cnt, note_dict, oh_manager, time_sig, part_b)
         if res['type'] == 'error':
-            socketio.emit('composition_status', {'type': 'error', 'section': 'meyan'}, namespace='/compose')
-            return
+            self.update_state(state='ERROR', meta={'status': 'meyan'})
+            return {'status': 'ERROR', 'result': 'meyan'}
 
-        socketio.emit('composition_status', {'type': 'composed', 'section': 'meyan'}, namespace='/compose')
-        print('meyan emit')
+        self.update_state(state='PROGRESS', meta={'status': 'meyan'})
 
         part_c = res['part_c']
 
@@ -82,33 +65,50 @@ def start_composing_bg(data):
 
         song_2_mus(song, makam, 'song_name', oh_manager, note_dict, time_sig, '4,8,12', second_rep, to_browser=True)
 
-        socketio.emit('composition_status', {'type': 'composed', 'section': 'all'}, namespace='/compose')
-        print('all emit')
+        self.update_state(state='PROGRESS', meta={'status': 'completed'})
+        return {'status': 'Composition completed!', 'result': 'completed'}
 
     except Exception as e:
-        emit('composition_status', {'type': 'error', 'section': 'start_composing', 'msg': str(e)})
-        print(e)
+        self.update_state(state='ERROR', meta={'status': str(e)})
+        return {'status': 'ERROR', 'result': str(e)}
 
 
-@socketio.on('disconnect', namespace='/compose')
-def disconnected():
-    print('disconnected')
-
-
-@socketio.on('connect', namespace='/compose')
-def connected():
-    print('connected')
-
-
-@socketio.on('message', namespace='/compose')
-def handle_message(msg):
-    print('message:', msg)
-
-
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def index():
     return render_template('index.html')
 
 
+@app.route('/start_composer', methods=['POST'])
+def start_composer():
+    print('== Starting long task ==')
+    notes = request.data
+    print('== notes ==', notes)
+    task = compose.apply_async(args=(notes,))
+    return jsonify({}), 202, {'Location': url_for('task_status', task_id=task.id)}
+
+
+@app.route('/status/<task_id>')
+def task_status(task_id):
+    task = compose.AsyncResult(task_id)
+    if task.state == 'PENDING':
+        response = {
+            'state': task.state,
+            'status': 'Pending...'
+        }
+    elif task.state != 'FAILURE':
+        response = {
+            'state': task.state,
+            'status': task.info.get('status', '')
+        }
+    else:
+        # something's wrong...
+        response = {
+            'state': task.state,
+            'status': str(task.info)
+        }
+
+    return jsonify(response)
+
+
 if __name__ == '__main__':
-    socketio.run(app, debug=True)
+    app.run(debug=True)
