@@ -63,7 +63,7 @@ def compose(self, notes):
         song = np.append(part_a, part_b, axis=1)
         song = np.append(song, part_c, axis=1)
 
-        browser_song = song_2_mus(song, makam, 'song_name', oh_manager, note_dict, time_sig, '4,8,12', second_rep, to_browser=True)
+        browser_song = song_2_mu(song, makam, 'song_name', oh_manager, note_dict, time_sig, '4,8,12', second_rep, to_browser=True)
 
         return {'status': json.dumps(browser_song), 'result': 'completed'}
 
