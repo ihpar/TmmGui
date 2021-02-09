@@ -553,6 +553,7 @@ def get_mu2_str(note, nom, denom):
 
 def song_2_mus(song, makam, title, oh_manager, note_dict, time_sig, mcs, second_rep, to_browser=False):
     nt, dt = None, None
+    browser_song = {'z': [], 'n': [], 'sr': [], 'm': []}
     if makam == 'nihavent':
         nt = note_translator.NoteTranslator(makam)
         dt = dur_translator.DurTranslator(makam)
@@ -573,7 +574,9 @@ def song_2_mus(song, makam, title, oh_manager, note_dict, time_sig, mcs, second_
     m_cnt = 0
     mzs = [int(x) for x in mcs.split(',')]
     has_second_rep = second_rep.size > 0
-    pb_len = mzs[1] - mzs[0]
+    # pb_len = mzs[1] - mzs[0]
+    z_measure_cnt, n_measure_cnt, m_measure_cnt = mzs[0], mzs[1], mzs[2]
+    curr_measure = []
     for row in song[0]:
         n_d = oh_manager.oh_2_nd(row)
         parts = n_d.split(':')
@@ -594,9 +597,19 @@ def song_2_mus(song, makam, title, oh_manager, note_dict, time_sig, mcs, second_
             dur = note_dict.get_dur_by_num(dur).split('/')
 
         lines.append(get_mu2_str(note, dur[0], dur[1]))
+        curr_measure.append(note + ':' + dur[0] + '/' + dur[1])
 
         m_tot += Fraction(int(dur[0]), int(dur[1]))
         if m_tot >= time_sig:
+
+            if m_cnt < z_measure_cnt:
+                browser_song['z'].append(curr_measure)
+            elif m_cnt < n_measure_cnt:
+                browser_song['n'].append(curr_measure)
+            else:
+                browser_song['m'].append(curr_measure)
+
+            curr_measure = []
             m_tot = Fraction(0)
             m_cnt += 1
             if m_cnt not in mzs:
@@ -636,6 +649,7 @@ def song_2_mus(song, makam, title, oh_manager, note_dict, time_sig, mcs, second_
                         dur = note_dict.get_dur_by_num(int(parts[1])).split('/')
 
                     lines.append(get_mu2_str(note, dur[0], dur[1]))
+                    browser_song['sr'].append(note + ':' + dur[0] + '/' + dur[1])
 
             if m_cnt == mzs[1]:
                 if has_second_rep:
@@ -652,7 +666,7 @@ def song_2_mus(song, makam, title, oh_manager, note_dict, time_sig, mcs, second_
                 lines.append('9								$	0.0')
 
     if to_browser:
-        pass
+        return browser_song
     else:
         file_name = title + '.mu2'
         song_path = os.path.join(os.path.abspath('..'), 'songs', makam, file_name)

@@ -491,6 +491,11 @@
             if (this.status === 200) {
                 let response = xhr.response;
                 console.log('response is:', response);
+                if (response['state'] === 'SUCCESS') {
+                    let song = JSON.parse(response['status']);
+                    console.log('song is:');
+                    console.log(song);
+                }
                 if (response['state'] === 'PENDING' || response['state'] === 'PROGRESS') {
                     setTimeout(function () {
                         update_composition_progress(status_url);

@@ -3,9 +3,9 @@ from flask import Flask, render_template, url_for, jsonify, request, json
 from celery import Celery
 from parts_composer import compose_zemin, compose_nakarat, compose_meyan, song_2_mus
 
-# 1- redis-server
-# 2- celery worker -A composer_server.celery --loglevel=info
-# 3- python composer_server.py
+# T1- redis-server
+# T2- celery worker -A composer_server.celery --loglevel=info
+# T3- python composer_server.py
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'lorem-ipman'
@@ -63,10 +63,9 @@ def compose(self, notes):
         song = np.append(part_a, part_b, axis=1)
         song = np.append(song, part_c, axis=1)
 
-        song_2_mus(song, makam, 'song_name', oh_manager, note_dict, time_sig, '4,8,12', second_rep, to_browser=True)
+        browser_song = song_2_mus(song, makam, 'song_name', oh_manager, note_dict, time_sig, '4,8,12', second_rep, to_browser=True)
 
-        self.update_state(state='PROGRESS', meta={'status': 'completed'})
-        return {'status': 'Composition completed!', 'result': 'completed'}
+        return {'status': json.dumps(browser_song), 'result': 'completed'}
 
     except Exception as e:
         self.update_state(state='ERROR', meta={'status': str(e)})
