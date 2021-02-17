@@ -50,6 +50,12 @@
         }
 
         /* progress */
+        .progress-circle {
+            width: 1em;
+            height: 1em;
+            border-radius: 50%;
+            background-color: #243041;
+        }
 
     </style>
 </head>
@@ -68,7 +74,23 @@
 
 <div id="dv-modal-bg" class="transparent hidden">
     <div id="dv-modal-content">
-        <p>Lorem ipsum</p>
+        <div class="progress-wrapper">
+            <div class="progress-row">
+                <div class="progress-time">00:00</div>
+                <div class="progress-circle"></div>
+                <div class="progress-message">Besteci başlatılıyor</div>
+            </div>
+            <div class="progress-row">
+                <div class="progress-time">00:32</div>
+                <div class="progress-circle"></div>
+                <div class="progress-message">Zemin bestelendi</div>
+            </div>
+            <div class="progress-row">
+                <div class="progress-time">00:00</div>
+                <div class="progress-circle"></div>
+                <div class="progress-message">Nakarat bestelendi</div>
+            </div>
+        </div>
     </div>
 </div>
 
