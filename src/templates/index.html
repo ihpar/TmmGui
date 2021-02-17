@@ -14,49 +14,197 @@
     <script type="text/javascript" src="{{ url_for('static', filename='js/tune.js') }}"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='style/site.css') }}">
     <style type="text/css">
-        #dv-modal-bg {
+        /* modal */
+
+        .md-modal {
             position: fixed;
-            left: 0;
-            top: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: rgba(245, 244, 240, 0.9);
-            transition: opacity 0.3s;
-        }
-
-        #dv-modal-bg.hidden {
-            width: 0;
-            height: 0;
+            top: 50%;
+            left: 50%;
+            z-index: 2000;
             visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            -moz-backface-visibility: hidden;
+            backface-visibility: hidden;
+            -webkit-transform: translateX(-50%) translateY(-50%);
+            -moz-transform: translateX(-50%) translateY(-50%);
+            -ms-transform: translateX(-50%) translateY(-50%);
+            transform: translateX(-50%) translateY(-50%);
         }
 
-        #dv-modal-bg.transparent {
-            opacity: 0 !important;
+        .md-show {
+            visibility: visible;
         }
 
-        #dv-modal-bg.visible {
+        .md-overlay {
+            position: fixed;
             width: 100%;
             height: 100%;
+            visibility: hidden;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+            opacity: 0;
+            background: rgba(240, 239, 235, 0.9);
+            -webkit-transition: all 0.2s;
+            transition: all 0.2s;
+        }
+
+        .md-show ~ .md-overlay {
+            opacity: 1;
             visibility: visible;
+        }
+
+        .md-content {
+            background-color: #fffdf5;
+            color: #1d2530;
+            box-shadow: 0 0 30px -20px #141414;
+            width: 26em;
+            height: 18em;
+            display: flex;
+            justify-content: center;
+        }
+
+        .md-fx .md-content {
+            -webkit-transform: translateY(-200%);
+            -ms-transform: translateY(-200%);
+            transform: translateY(-200%);
+            opacity: 0;
+            -webkit-transition: all 0.3s;
+            transition: all 0.3s;
+        }
+
+        .md-show.md-fx .md-content {
+            -webkit-transform: translateY(0%);
+            -ms-transform: translateY(0%);
+            transform: translateY(0%);
             opacity: 1;
         }
 
-        #dv-modal-content {
-            padding: 1em 2em;
-            background-color: #F7F5EA;
-            color: #243041;
-            box-shadow: 0 0 30px -20px #141414;
+        /* Status */
+        .outer {
+            flex: 1;
+            width: 100%;
         }
 
-        /* progress */
-        .progress-circle {
-            width: 1em;
-            height: 1em;
+        .progress {
+            display: inline-flex;
+            height: 100%;
+            padding: 5vh 10%;
+        }
+
+        .progress > div {
+            display: flex;
+            flex-direction: column;
+            color: #333;
+        }
+
+        .progress > div.left {
+            padding-right: 20px;
+            text-align: right;
+        }
+
+        .progress > div.left div:last-of-type:after {
+            display: none;
+        }
+
+        .progress > div.left div:after {
+            content: "";
+            background: rgba(51, 51, 51, 0.1);
+            border-radius: 2px;
+            position: absolute;
+            right: -20px;
+            top: 10px;
+            height: 101%;
+            width: 1px;
+            transform: translateX(50%);
+        }
+
+        .progress > div.right {
+            padding-left: 20px;
+        }
+
+        .progress > div.right div.prev:after {
+            transition: none;
+        }
+
+        .progress > div.right div.current {
+            color: #333;
+            font-weight: bold;
+        }
+
+        .progress > div.right div.current:before {
+            background: #333;
+            padding: 10px;
+            transition: all 0.2s 0.15s cubic-bezier(0.175, 0.885, 0.32, 2);
+        }
+
+        .progress > div.right div.current:after {
+            height: 0%;
+            transition: height 0.2s ease-out;
+        }
+
+        .progress > div.right div.current ~ div {
+            color: #666;
+        }
+
+        .progress > div.right div.current ~ div:before {
+            background: #666;
+            padding: 2.5px;
+        }
+
+        .progress > div.right div.current ~ div:after {
+            height: 0%;
+            transition: none;
+        }
+
+        .progress > div.right div:before {
+            content: "";
+            background: #333;
+            padding: 5px;
             border-radius: 50%;
-            background-color: #243041;
+            position: absolute;
+            left: -20px;
+            top: 10px;
+            transform: translateX(-50%) translateY(-50%);
+            transition: padding 0.2s ease;
         }
 
+        .progress > div.right div:after {
+            content: "";
+            background: #333;
+            border-radius: 2px;
+            position: absolute;
+            left: -20px;
+            top: 10px;
+            height: 101%;
+            width: 2px;
+            transform: translateX(-50%);
+            transition: height 0.2s ease;
+        }
+
+        .progress > div div {
+            flex: 1;
+            position: relative;
+            line-height: 20px;
+            cursor: default;
+            min-height: 30px;
+        }
+
+        .progress > div div:last-of-type {
+            flex: 0;
+        }
+
+        .done.current {
+            color: #62af0b !important;
+        }
+
+        .done.current:before {
+            background: #62af0b !important;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
     </style>
 </head>
 <body>
@@ -72,43 +220,42 @@
     </div>
 </div>
 
-<div id="dv-modal-bg" class="transparent hidden">
-    <div id="dv-modal-content">
-        <div class="progress-wrapper">
-            <div class="progress-row">
-                <div class="progress-time">00:00</div>
-                <div class="progress-circle"></div>
-                <div class="progress-message">Besteci başlatılıyor</div>
-            </div>
-            <div class="progress-row">
-                <div class="progress-time">00:32</div>
-                <div class="progress-circle"></div>
-                <div class="progress-message">Zemin bestelendi</div>
-            </div>
-            <div class="progress-row">
-                <div class="progress-time">00:00</div>
-                <div class="progress-circle"></div>
-                <div class="progress-message">Nakarat bestelendi</div>
+<div class="md-modal md-fx" id="dv-modal-outer">
+    <div class="md-content">
+
+        <div class="outer">
+            <div class="progress">
+                <div class="left">
+                    <div>Başlangıç</div>
+                    <div></div>
+                    <div class="current"></div>
+                    <div></div>
+                    <div>Bitiş</div>
+                </div>
+                <div class="right">
+                    <div>Besteci başlatıldı</div>
+                    <div>Zemin bestelendi</div>
+                    <div class="current">Nakarat besteleniyor</div>
+                    <div>Meyan bestelenecek</div>
+                    <div class="done">İndirme hazırlanacak</div>
+                </div>
             </div>
         </div>
+
     </div>
 </div>
+
+<div class="md-overlay"></div>
 
 <script type="text/javascript">
     "use strict";
 
     function toggleProgressModal(isVisible) {
-        let modal = document.getElementById('dv-modal-bg');
+        let modal = document.getElementById('dv-modal-outer');
         if (isVisible) {
-            modal.classList.add('visible');
-            modal.classList.remove('hidden');
-            modal.classList.remove('transparent');
+            modal.classList.add('md-show');
         } else {
-            modal.classList.add('transparent');
-            setTimeout(function () {
-                modal.classList.remove('visible');
-                modal.classList.add('hidden');
-            }, 400);
+            modal.classList.remove('md-show');
         }
     }
 
