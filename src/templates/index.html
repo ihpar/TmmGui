@@ -14,6 +14,42 @@
     <script type="text/javascript" src="{{ url_for('static', filename='js/tune.js') }}"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='style/site.css') }}">
     <style type="text/css">
+        #dv-modal-bg {
+            position: fixed;
+            left: 0;
+            top: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(245, 244, 240, 0.9);
+            transition: opacity 0.3s;
+        }
+
+        #dv-modal-bg.hidden {
+            width: 0;
+            height: 0;
+            visibility: hidden;
+        }
+
+        #dv-modal-bg.transparent {
+            opacity: 0 !important;
+        }
+
+        #dv-modal-bg.visible {
+            width: 100%;
+            height: 100%;
+            visibility: visible;
+            opacity: 1;
+        }
+
+        #dv-modal-content {
+            padding: 1em 2em;
+            background-color: #F7F5EA;
+            color: #243041;
+            box-shadow: 0 0 30px -20px #141414;
+        }
+
+        /* progress */
 
     </style>
 </head>
@@ -29,8 +65,30 @@
         <div id="dv-tmm-wrapper"></div>
     </div>
 </div>
+
+<div id="dv-modal-bg" class="transparent hidden">
+    <div id="dv-modal-content">
+        <p>Lorem ipsum</p>
+    </div>
+</div>
+
 <script type="text/javascript">
     "use strict";
+
+    function toggleProgressModal(isVisible) {
+        let modal = document.getElementById('dv-modal-bg');
+        if (isVisible) {
+            modal.classList.add('visible');
+            modal.classList.remove('hidden');
+            modal.classList.remove('transparent');
+        } else {
+            modal.classList.add('transparent');
+            setTimeout(function () {
+                modal.classList.remove('visible');
+                modal.classList.add('hidden');
+            }, 400);
+        }
+    }
 
     const notePositions = {
         b2: 9,
@@ -483,6 +541,13 @@
         xhr.send(JSON.stringify({'makam': mParams.makam.name, 'notes': notes}));
     }
 
+    let composedSong = {
+        "m": [["Do5#4:1/8", "Re5:1/4", "Sol5:1/8", "Fa5:1/8", "Mi5:1/8", "Re5:1/8", "Do5#4:1/8", "Si4b4:1/8"], ["La4:1/8", "Sol4:1/8", "La4:1/8", "Si4b4:1/8", "Do5#4:1/8", "Re5:1/8", "Mi5:1/8", "Fa5:1/8", "Mi5:1/8"], ["Mi5:1/8", "Do5#4:1/8", "Re5:1/8", "Mi5:1/8", "Mi5:1/8", "Fa5:1/8", "Mi5:1/8", "Fa5:1/8", "Mi5:1/8"], ["Re5:1/8", "Do5#4:1/8", "Re5:1/4", "Fa5:1/8", "Mi5:1/8", "Re5:1/8", "Do5#4:1/4"]],
+        "n": [["La4:1/16", "Si4b4:1/16", "Do5#4:1/16", "Re5:1/8", "Mi5:1/8", "Re5:1/8", "Do5#4:1/8", "Si4b4:1/8", "La4:1/8", "La4:1/8", "Si4b4:1/16"], ["Do5#4:1/16", "Si4b4:1/16", "La4:1/16", "La4:1/4", "La4:1/4", "Rest:1/8", "Re5:1/4", "Mi5:1/16"], ["Re5:1/8", "Mi5:1/16", "Mi5:1/16", "Re5:1/16", "Do5#4:1/16", "Re5:1/4", "Do5#4:1/8", "Re5:1/8", "Mi5:1/8", "Re5:1/8"], ["Do5#4:1/8", "Re5:1/8", "Mi5:1/8", "Fa5:1/8", "Fa5:1/8", "Mi5:1/8", "Mi5:1/8", "Re5:1/8", "Re5:1/8"]],
+        "sr": ["Si4b4:1/16", "Do5#4:1/16", "Si4b4:1/16", "La4:1/16", "La4:3/8", "La4:1/4", "La4:1/8", "La4:1/8"],
+        "z": [["La4:1/8", "Fa5#4:1/8", "Mi5:1/8", "Fa5#4:1/8", "Mi5:1/8", "Re5:1/8", "Do5#4:1/8", "Si4b4:1/8", "Si4b4:1/8"], ["La4:1/8", "La4:1/2", "Rest:1/8", "Do5#4:1/4", "Re5:1/8"], ["Re5:1/8", "Mi5:1/8", "Re5:1/8", "Do5#4:1/8", "Do5#4:1/8", "Si4b4:1/8", "La4:1/8", "Si4b4:1/8", "Do5#4:1/8"], ["Re5:1/8", "Do5#4:1/16", "Si4b4:1/16", "La4:1/16", "Si4b4:1/16", "La4:1/16", "Si4b4:1/16", "Re5:1/16", "Mi5:1/16", "Re5:1/16", "Do5#4:1/16", "Si4b4:1/16", "La4:1/4", "Sol4:1/16"]]
+    };
+
     function update_composition_progress(status_url) {
         let xhr = new XMLHttpRequest();
         xhr.open('GET', status_url, true);
@@ -493,6 +558,7 @@
                 console.log('response is:', response);
                 if (response['state'] === 'SUCCESS') {
                     let song = JSON.parse(response['status']);
+                    composedSong = song;
                     console.log('song is:');
                     console.log(song);
                 }
@@ -2004,7 +2070,6 @@
 
         createTMMMenu(containerSelector, this.paper);
         allowNewInsertion(true);
-        document.querySelector('[data-dur-val="n4"]').click();
         // eof prep work
 
         let pLeft = this.configs.padding.left;
@@ -2107,6 +2172,7 @@
         this.begin = function () {
             this.initScore();
             this.attachEventHandlers();
+            document.querySelector('[data-dur-val="n4"]').click();
         };
     }
 

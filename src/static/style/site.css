@@ -252,6 +252,7 @@ body ::-webkit-scrollbar-thumb:hover {
     transition: all 400ms;
 }
 
+
 @media screen and (max-width: 1030px) {
     html, body {
         font-size: 11pt;
