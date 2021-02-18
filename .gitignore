@@ -13,3 +13,4 @@
 /src/dump.rdb
 /.idea/codeStyles/codeStyleConfig.xml
 /.idea/other.xml
+/src/static/downloadables/*
