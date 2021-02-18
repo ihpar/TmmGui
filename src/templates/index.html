@@ -84,12 +84,13 @@
         .outer {
             flex: 1;
             width: 100%;
+            padding: 2em;
         }
 
         .progress {
             display: inline-flex;
+            width: 100%;
             height: 100%;
-            padding: 5vh 10%;
         }
 
         .progress > div {
@@ -136,10 +137,11 @@
             background: #333;
             padding: 10px;
             transition: all 0.2s 0.15s cubic-bezier(0.175, 0.885, 0.32, 2);
+            animation: glow 1s infinite alternate;
         }
 
         .progress > div.right div.current:after {
-            height: 0%;
+            height: 0;
             transition: height 0.2s ease-out;
         }
 
@@ -153,7 +155,7 @@
         }
 
         .progress > div.right div.current ~ div:after {
-            height: 0%;
+            height: 0;
             transition: none;
         }
 
@@ -194,7 +196,7 @@
             flex: 0;
         }
 
-        .done.current {
+        .done.current, .done.current > a {
             color: #62af0b !important;
         }
 
@@ -202,8 +204,13 @@
             background: #62af0b !important;
         }
 
-        * {
-            box-sizing: border-box;
+        @keyframes glow {
+            from {
+                box-shadow: 0 0 4px -4px rgba(140, 212, 32, 0.4);
+            }
+            to {
+                box-shadow: 0 0 4px 4px rgba(140, 212, 32, 0.4);
+            }
         }
     </style>
 </head>
@@ -225,19 +232,19 @@
 
         <div class="outer">
             <div class="progress">
-                <div class="left">
-                    <div>Başlangıç</div>
-                    <div></div>
-                    <div class="current"></div>
-                    <div></div>
-                    <div>Bitiş</div>
+                <div id="dv-progress-wrap-L" class="left">
+                    <div id="dv-start-L" class="current">Başlangıç</div>
+                    <div id="dv-zemin-L"></div>
+                    <div id="dv-nakarat-L"></div>
+                    <div id="dv-meyan-L"></div>
+                    <div id="dv-finish-L">Bitiş</div>
                 </div>
-                <div class="right">
-                    <div>Besteci başlatıldı</div>
-                    <div>Zemin bestelendi</div>
-                    <div class="current">Nakarat besteleniyor</div>
-                    <div>Meyan bestelenecek</div>
-                    <div class="done">İndirme hazırlanacak</div>
+                <div id="dv-progress-wrap-R" class="right">
+                    <div id="dv-start-R" class="current">Besteci başlatılıyor</div>
+                    <div id="dv-zemin-R">Zemin bestelenecek</div>
+                    <div id="dv-nakarat-R">Nakarat bestelenecek</div>
+                    <div id="dv-meyan-R">Meyan bestelenecek</div>
+                    <div id="dv-finish-R" class="done">İndirme hazırlanacak</div>
                 </div>
             </div>
         </div>
@@ -257,6 +264,45 @@
         } else {
             modal.classList.remove('md-show');
         }
+    }
+
+    function setProgressStatus(message, section, changeClasses) {
+        let leftDivs = document.querySelector('#dv-progress-wrap-L').children;
+        let rightDivs = document.querySelector('#dv-progress-wrap-R').children;
+        for (let i = 0; i < leftDivs.length; i++) {
+            if (leftDivs[i].getAttribute('id').indexOf(section) < 0) {
+                if (changeClasses) {
+                    leftDivs[i].classList.remove('current');
+                    rightDivs[i].classList.remove('current');
+                    leftDivs[i].classList.add('prev');
+                    rightDivs[i].classList.add('prev');
+                }
+            } else {
+                if (changeClasses) {
+                    leftDivs[i].classList.add('current');
+                    rightDivs[i].classList.add('current');
+                }
+                rightDivs[i].innerHTML = message;
+                break;
+            }
+        }
+    }
+
+    function resetProgressStatus() {
+        mParams.lastStatus = null;
+        document.querySelector('#dv-progress-wrap-L').innerHTML = '' +
+            '<div id="dv-start-L" class="current">Başlangıç</div>' +
+            '<div id="dv-zemin-L"></div>' +
+            '<div id="dv-nakarat-L"></div>' +
+            '<div id="dv-meyan-L"></div>' +
+            '<div id="dv-finish-L">Bitiş</div>';
+
+        document.querySelector('#dv-progress-wrap-R').innerHTML = '' +
+            '<div id="dv-start-R" class="current">Besteci başlatılıyor</div>' +
+            '<div id="dv-zemin-R">Zemin bestelenecek</div>' +
+            '<div id="dv-nakarat-R">Nakarat bestelenecek</div>' +
+            '<div id="dv-meyan-R">Meyan bestelenecek</div>' +
+            '<div id="dv-finish-R" class="done">İndirme hazırlanacak</div>';
     }
 
     const notePositions = {
@@ -465,7 +511,8 @@
         soundStarted: false,
         soundActive: false,
         instrument: null,
-        canUseSound: false
+        canUseSound: false,
+        lastStatus: null
     };
 
     let cNoteWidths = {};
@@ -691,7 +738,13 @@
     }
 
     function besteleButtonClick(e, sender) {
+        sender.style.color = '#ddd';
+        sender.style.pointerEvents = 'none';
         e.stopPropagation();
+
+        resetProgressStatus();
+        toggleProgressModal(true);
+
         let song = tmmScore.getWholePlayableObject();
         let notes = [];
         for (let note of song) {
@@ -702,7 +755,7 @@
             if (this.readyState === this.HEADERS_RECEIVED) {
                 let status_url = this.getResponseHeader('Location');
                 console.log('st url:', status_url);
-                update_composition_progress(status_url);
+                updateCompositionProgress(status_url);
             }
         }
 
@@ -717,7 +770,7 @@
         "z": [["La4:1/8", "Fa5#4:1/8", "Mi5:1/8", "Fa5#4:1/8", "Mi5:1/8", "Re5:1/8", "Do5#4:1/8", "Si4b4:1/8", "Si4b4:1/8"], ["La4:1/8", "La4:1/2", "Rest:1/8", "Do5#4:1/4", "Re5:1/8"], ["Re5:1/8", "Mi5:1/8", "Re5:1/8", "Do5#4:1/8", "Do5#4:1/8", "Si4b4:1/8", "La4:1/8", "Si4b4:1/8", "Do5#4:1/8"], ["Re5:1/8", "Do5#4:1/16", "Si4b4:1/16", "La4:1/16", "Si4b4:1/16", "La4:1/16", "Si4b4:1/16", "Re5:1/16", "Mi5:1/16", "Re5:1/16", "Do5#4:1/16", "Si4b4:1/16", "La4:1/4", "Sol4:1/16"]]
     };
 
-    function update_composition_progress(status_url) {
+    function updateCompositionProgress(status_url) {
         let xhr = new XMLHttpRequest();
         xhr.open('GET', status_url, true);
         xhr.responseType = 'json';
@@ -725,18 +778,63 @@
             if (this.status === 200) {
                 let response = xhr.response;
                 console.log('response is:', response);
-                if (response['state'] === 'SUCCESS') {
+                let state = response['state'];
+
+                if (state === 'PROGRESS') {
+                    let status = response['status'];
+                    switch (status) {
+                        case 'begin':
+                            if (mParams.lastStatus !== status) {
+                                mParams.lastStatus = status;
+                                setProgressStatus('Besteci başlatıldı', 'start', false);
+                            }
+                            break;
+                        case 'zemin':
+                            if (mParams.lastStatus !== status) {
+                                mParams.lastStatus = status;
+                                setProgressStatus('Besteci başlatıldı', 'start', false);
+                                setTimeout(function () {
+                                    setProgressStatus('Zemin besteleniyor', 'zemin', true);
+                                }, 500);
+                            }
+                            break;
+                        case 'nakarat':
+                            if (mParams.lastStatus !== status) {
+                                mParams.lastStatus = status;
+                                setProgressStatus('Zemin bestelendi', 'zemin', false);
+                                setTimeout(function () {
+                                    setProgressStatus('Nakarat besteleniyor', 'nakarat', true);
+                                }, 500);
+                            }
+                            break;
+                        case 'meyan':
+                            if (mParams.lastStatus !== status) {
+                                mParams.lastStatus = status;
+                                setProgressStatus('Nakarat bestelendi', 'nakarat', false);
+                                setTimeout(function () {
+                                    setProgressStatus('Meyan besteleniyor', 'meyan', true);
+                                }, 500);
+                            }
+                            break;
+                        default:
+                            break;
+                    }
+
+                } else if (state === 'SUCCESS') {
                     let song = JSON.parse(response['status']);
                     composedSong = song;
                     console.log('song is:');
                     console.log(song);
-                }
-                if (response['state'] === 'PENDING' || response['state'] === 'PROGRESS') {
+                    setProgressStatus('Meyan bestelendi', 'meyan', false);
                     setTimeout(function () {
-                        update_composition_progress(status_url);
+                        setProgressStatus('<a href="' + song['mu2'] + '" download>İndirme hazır ↯</a>', 'finish', true);
+                    }, 500);
+                }
+
+                if (state === 'PENDING' || state === 'PROGRESS') {
+                    setTimeout(function () {
+                        updateCompositionProgress(status_url);
                     }, 2000);
-                } else {
-                    console.log('=== fin! ===');
                 }
             } else {
                 console.log('=== Error ===');

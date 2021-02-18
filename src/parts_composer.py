@@ -553,7 +553,7 @@ def get_mu2_str(note, nom, denom):
 
 def song_2_mus(song, makam, title, oh_manager, note_dict, time_sig, mcs, second_rep, to_browser=False):
     nt, dt = None, None
-    browser_song = {'z': [], 'n': [], 'sr': [], 'm': []}
+    browser_song = {'z': [], 'n': [], 'sr': [], 'm': [], 'mu2': ''}
     if makam == 'nihavent':
         nt = note_translator.NoteTranslator(makam)
         dt = dur_translator.DurTranslator(makam)
@@ -665,15 +665,20 @@ def song_2_mus(song, makam, title, oh_manager, note_dict, time_sig, mcs, second_
                 lines.append('9								)	0.0')
                 lines.append('9								$	0.0')
 
+    file_name = title + '.mu2'
+
     if to_browser:
-        return browser_song
+        song_path = os.path.join('static', 'downloadables', file_name)
     else:
-        file_name = title + '.mu2'
         song_path = os.path.join(os.path.abspath('..'), 'songs', makam, file_name)
-        with io.open(song_path, 'w', encoding='utf-8') as song_file:
-            for line in lines:
-                song_file.write(line + '\n')
-        print(f'{file_name} is saved to disk!')
+
+    with io.open(song_path, 'w', encoding='utf-8') as song_file:
+        for line in lines:
+            song_file.write(line + '\n')
+
+        browser_song['mu2'] = '/static/downloadables/' + file_name
+
+    return browser_song
 
 
 def make_ab_db(makam, part_ids, dir_path, note_dict, oh_manager, set_size):
@@ -790,54 +795,6 @@ def compose_meyan(makam, dir_path, set_size, measure_cnt, note_dict, oh_manager,
 
         return {'type': 'success',
                 'part_c': part_c}
-
-
-def gui_composer(makam, starters):
-    if makam == 'Hicaz':
-        makam = 'hicaz'
-    else:
-        makam = 'nihavent'
-
-    dir_path = os.path.join(os.path.abspath(os.path.join(os.getcwd(), os.pardir)), 'songs', 'cp_songs', makam)
-    set_size = 8
-    measure_cnt = 4
-
-    if makam == 'hicaz':
-        note_dict = NCDictionary()
-        oh_manager = OhManager(makam)
-        time_sig = Fraction(9, 8)
-        boundaries = [[0.15, 0.35], [0.15, 0.35], [0.10, 0.30]]
-
-        models_a = [load_model(makam, 'sec_AW9_v61'), load_model(makam, 'sec_AW10_v62'), load_model(makam, 'b_decider_v_ia7')]
-        models_b = [load_model(makam, 'sec_BW11_v61'), load_model(makam, 'sec_BW12_v62'), load_model(makam, 'b_decider_v_b8')]
-        models_c = [load_model(makam, 'sec_CW1_v61'), load_model(makam, 'sec_CW2_v62'), load_model(makam, 'b_decider_v_c9')]
-        enders = ['nakarat_end_v2', 'nakarat_end_v1']
-
-        song_name = 'Hicaz_Aksak_Sarki'
-        lo, hi = boundaries[0][0], boundaries[0][1]
-        cp = CandidatePicker(makam, hicaz_parts.hicaz_songs, ['I', 'A'], dir_path, note_dict, oh_manager, set_size)
-        part_a = compose_v2(makam, time_sig, measure_cnt, starters, models_a, set_size, lo, hi, cp, note_dict, oh_manager, by_gui=True)
-        if len(part_a) == 0:
-            return 'Err 1'
-
-        lo, hi = boundaries[1][0], boundaries[1][1]
-        cp = CandidatePicker(makam, hicaz_parts.hicaz_songs, ['B'], dir_path, note_dict, oh_manager, set_size)
-        part_b = compose_v2(makam, time_sig, measure_cnt, part_a, models_b, set_size, lo, hi, cp, note_dict, oh_manager, by_part=True)
-        second_rep = compose_ending(makam, enders, part_b, time_sig, measure_cnt, note_dict, oh_manager, lo, hi)
-        if len(part_b) == 0:
-            return 'Err 2'
-
-        lo, hi = boundaries[2][0], boundaries[2][1]
-        cp = CandidatePicker(makam, hicaz_parts.hicaz_songs, ['C'], dir_path, note_dict, oh_manager, set_size)
-        part_c = compose_v2(makam, time_sig, measure_cnt, part_b, models_c, set_size, lo, hi, cp, note_dict, oh_manager, by_part=True)
-        if len(part_c) == 0:
-            return 'Err 3'
-
-        song = np.append(part_a, part_b, axis=1)
-        song = np.append(song, part_c, axis=1)
-        song_2_mus(song, makam, song_name, oh_manager, note_dict, time_sig, '4,8,12', second_rep)
-
-    return 'OK loaded models'
 
 
 def main():

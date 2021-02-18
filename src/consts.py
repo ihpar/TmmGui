@@ -9,7 +9,7 @@ mu2_header = [
     '51		0	0				[Serbest]		',
     '52		1	8	124					',
     '57							Beste		',
-    '58							ismail parlak		',
+    '58							Lorem Ipsum		',
     '59							DEU		',
     '60							{song_title}		',
     '62							H		',

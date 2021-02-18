@@ -1,4 +1,5 @@
 import numpy as np
+import uuid
 from flask import Flask, render_template, url_for, jsonify, request, json
 from celery import Celery
 from parts_composer import compose_zemin, compose_nakarat, compose_meyan, song_2_mus
@@ -25,12 +26,11 @@ def compose(self, notes):
     self.update_state(state='PROGRESS', meta={'status': 'begin'})
 
     try:
+        self.update_state(state='PROGRESS', meta={'status': 'zemin'})
         res = compose_zemin(makam, notes)
         if res['type'] == 'error':
             self.update_state(state='ERROR', meta={'status': 'zemin'})
             return {'status': 'ERROR', 'result': 'zemin'}
-
-        self.update_state(state='PROGRESS', meta={'status': 'zemin'})
 
         makam = res['makam']
         dir_path = res['dir_path']
@@ -41,29 +41,28 @@ def compose(self, notes):
         time_sig = res['time_sig']
         part_a = res['part_a']
 
+        self.update_state(state='PROGRESS', meta={'status': 'nakarat'})
         res = compose_nakarat(makam, dir_path, set_size, measure_cnt, note_dict, oh_manager, time_sig, part_a)
         if res['type'] == 'error':
             self.update_state(state='ERROR', meta={'status': 'nakarat'})
             return {'status': 'ERROR', 'result': 'nakarat'}
 
-        self.update_state(state='PROGRESS', meta={'status': 'nakarat'})
-
         part_b = res['part_b']
         second_rep = res['second_rep']
 
+        self.update_state(state='PROGRESS', meta={'status': 'meyan'})
         res = compose_meyan(makam, dir_path, set_size, measure_cnt, note_dict, oh_manager, time_sig, part_b)
         if res['type'] == 'error':
             self.update_state(state='ERROR', meta={'status': 'meyan'})
             return {'status': 'ERROR', 'result': 'meyan'}
-
-        self.update_state(state='PROGRESS', meta={'status': 'meyan'})
 
         part_c = res['part_c']
 
         song = np.append(part_a, part_b, axis=1)
         song = np.append(song, part_c, axis=1)
 
-        browser_song = song_2_mus(song, makam, 'song_name', oh_manager, note_dict, time_sig, '4,8,12', second_rep, to_browser=True)
+        song_name = makam + '-' + str(uuid.uuid4())
+        browser_song = song_2_mus(song, makam, song_name, oh_manager, note_dict, time_sig, '4,8,12', second_rep, to_browser=True)
 
         return {'status': json.dumps(browser_song), 'result': 'completed'}
 
