@@ -59,7 +59,7 @@
                     </li>
                     <li><br></li>
                     <li>
-                        <div class="dv-button" onclick="toggleProgressModal(0);">Kapat</div>
+                        <div class="dv-button" onclick="closeProgressBoxAfter(1);">Kapat</div>
                     </li>
                 </ul>
             </div>
@@ -91,13 +91,13 @@
         }
     }
 
-    function closeProgressBoxLater() {
+    function closeProgressBoxAfter(after) {
         setTimeout(function () {
             let toServerBtn = document.querySelector('#btnBestele');
             toServerBtn.style.color = '';
             toServerBtn.style.pointerEvents = '';
             toggleProgressModal(false);
-        }, 2000);
+        }, after);
     }
 
     function toggleProgressModal(isVisible) {
@@ -623,47 +623,42 @@
                 let response = xhr.response;
                 console.log('response is:', response);
                 let state = response['state'];
+                let status = response['status'];
+
+                if (status === 'ERROR' || (state !== 'PENDING' && state !== 'PROGRESS' && state !== 'SUCCESS')) {
+                    toggleProgressError(true);
+                    return false;
+                }
 
                 if (state === 'PROGRESS') {
-                    let status = response['status'];
-                    switch (status) {
-                        case 'begin':
-                            if (mParams.lastStatus !== status) {
-                                mParams.lastStatus = status;
+                    if (mParams.lastStatus !== status) {
+                        mParams.lastStatus = status;
+                        switch (status) {
+                            case 'begin':
                                 setProgressStatus('Besteci başlatıldı', 'start', false);
-                            }
-                            break;
-                        case 'zemin':
-                            if (mParams.lastStatus !== status) {
-                                mParams.lastStatus = status;
+                                break;
+                            case 'zemin':
                                 setProgressStatus('Besteci başlatıldı', 'start', false);
                                 setTimeout(function () {
                                     setProgressStatus('Zemin besteleniyor', 'zemin', true);
                                 }, 500);
-                            }
-                            break;
-                        case 'nakarat':
-                            if (mParams.lastStatus !== status) {
-                                mParams.lastStatus = status;
+                                break;
+                            case 'nakarat':
                                 setProgressStatus('Zemin bestelendi', 'zemin', false);
                                 setTimeout(function () {
                                     setProgressStatus('Nakarat besteleniyor', 'nakarat', true);
                                 }, 500);
-                            }
-                            break;
-                        case 'meyan':
-                            if (mParams.lastStatus !== status) {
-                                mParams.lastStatus = status;
+                                break;
+                            case 'meyan':
                                 setProgressStatus('Nakarat bestelendi', 'nakarat', false);
                                 setTimeout(function () {
                                     setProgressStatus('Meyan besteleniyor', 'meyan', true);
                                 }, 500);
-                            }
-                            break;
-                        default:
-                            break;
+                                break;
+                            default:
+                                break;
+                        }
                     }
-
                 } else if (state === 'SUCCESS') {
                     let song = JSON.parse(response['status']);
                     composedSong = song;
@@ -671,7 +666,7 @@
                     console.log(song);
                     setProgressStatus('Meyan bestelendi', 'meyan', false);
                     setTimeout(function () {
-                        setProgressStatus('<a onclick="closeProgressBoxLater();" href="' + song['mu2'] + '" download>İndirme hazır ↯</a>', 'finish', true);
+                        setProgressStatus('<a onclick="closeProgressBoxAfter(2000);" href="' + song['mu2'] + '" download>İndirme hazır ↯</a>', 'finish', true);
                     }, 500);
                 }
 
@@ -681,12 +676,9 @@
                     }, 2000);
                 }
 
-                if (state !== 'PENDING' && state !== 'PROGRESS' && state !== 'SUCCESS') {
-                    toggleProgressError(true);
-                }
-
             } else {
                 toggleProgressError(true);
+                return false;
             }
         };
         xhr.send();
