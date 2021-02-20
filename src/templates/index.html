@@ -14,204 +14,7 @@
     <script type="text/javascript" src="{{ url_for('static', filename='js/tune.js') }}"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='style/site.css') }}">
     <style type="text/css">
-        /* modal */
 
-        .md-modal {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            z-index: 2000;
-            visibility: hidden;
-            -webkit-backface-visibility: hidden;
-            -moz-backface-visibility: hidden;
-            backface-visibility: hidden;
-            -webkit-transform: translateX(-50%) translateY(-50%);
-            -moz-transform: translateX(-50%) translateY(-50%);
-            -ms-transform: translateX(-50%) translateY(-50%);
-            transform: translateX(-50%) translateY(-50%);
-        }
-
-        .md-show {
-            visibility: visible;
-        }
-
-        .md-overlay {
-            position: fixed;
-            width: 100%;
-            height: 100%;
-            visibility: hidden;
-            top: 0;
-            left: 0;
-            z-index: 1000;
-            opacity: 0;
-            background: rgba(240, 239, 235, 0.9);
-            -webkit-transition: all 0.2s;
-            transition: all 0.2s;
-        }
-
-        .md-show ~ .md-overlay {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .md-content {
-            background-color: #fffdf5;
-            color: #1d2530;
-            box-shadow: 0 0 30px -20px #141414;
-            width: 26em;
-            height: 18em;
-            display: flex;
-            justify-content: center;
-        }
-
-        .md-fx .md-content {
-            -webkit-transform: translateY(-200%);
-            -ms-transform: translateY(-200%);
-            transform: translateY(-200%);
-            opacity: 0;
-            -webkit-transition: all 0.3s;
-            transition: all 0.3s;
-        }
-
-        .md-show.md-fx .md-content {
-            -webkit-transform: translateY(0%);
-            -ms-transform: translateY(0%);
-            transform: translateY(0%);
-            opacity: 1;
-        }
-
-        /* Status */
-        .outer {
-            flex: 1;
-            width: 100%;
-            padding: 2em;
-        }
-
-        .progress {
-            display: inline-flex;
-            width: 100%;
-            height: 100%;
-        }
-
-        .progress > div {
-            display: flex;
-            flex-direction: column;
-            color: #333;
-        }
-
-        .progress > div.left {
-            padding-right: 20px;
-            text-align: right;
-        }
-
-        .progress > div.left div:last-of-type:after {
-            display: none;
-        }
-
-        .progress > div.left div:after {
-            content: "";
-            background: rgba(51, 51, 51, 0.1);
-            border-radius: 2px;
-            position: absolute;
-            right: -20px;
-            top: 10px;
-            height: 101%;
-            width: 1px;
-            transform: translateX(50%);
-        }
-
-        .progress > div.right {
-            padding-left: 20px;
-        }
-
-        .progress > div.right div.prev:after {
-            transition: none;
-        }
-
-        .progress > div.right div.current {
-            color: #333;
-            font-weight: bold;
-        }
-
-        .progress > div.right div.current:before {
-            background: #333;
-            padding: 10px;
-            transition: all 0.2s 0.15s cubic-bezier(0.175, 0.885, 0.32, 2);
-            animation: glow 1s infinite alternate;
-        }
-
-        .progress > div.right div.current:after {
-            height: 0;
-            transition: height 0.2s ease-out;
-        }
-
-        .progress > div.right div.current ~ div {
-            color: #666;
-        }
-
-        .progress > div.right div.current ~ div:before {
-            background: #666;
-            padding: 2.5px;
-        }
-
-        .progress > div.right div.current ~ div:after {
-            height: 0;
-            transition: none;
-        }
-
-        .progress > div.right div:before {
-            content: "";
-            background: #333;
-            padding: 5px;
-            border-radius: 50%;
-            position: absolute;
-            left: -20px;
-            top: 10px;
-            transform: translateX(-50%) translateY(-50%);
-            transition: padding 0.2s ease;
-        }
-
-        .progress > div.right div:after {
-            content: "";
-            background: #333;
-            border-radius: 2px;
-            position: absolute;
-            left: -20px;
-            top: 10px;
-            height: 101%;
-            width: 2px;
-            transform: translateX(-50%);
-            transition: height 0.2s ease;
-        }
-
-        .progress > div div {
-            flex: 1;
-            position: relative;
-            line-height: 20px;
-            cursor: default;
-            min-height: 30px;
-        }
-
-        .progress > div div:last-of-type {
-            flex: 0;
-        }
-
-        .done.current, .done.current > a {
-            color: #62af0b !important;
-        }
-
-        .done.current:before {
-            background: #62af0b !important;
-        }
-
-        @keyframes glow {
-            from {
-                box-shadow: 0 0 4px -4px rgba(140, 212, 32, 0.4);
-            }
-            to {
-                box-shadow: 0 0 4px 4px rgba(140, 212, 32, 0.4);
-            }
-        }
     </style>
 </head>
 <body>
@@ -231,7 +34,8 @@
     <div class="md-content">
 
         <div class="outer">
-            <div class="progress">
+
+            <div id="dv-progress-main-wrap" class="progress">
                 <div id="dv-progress-wrap-L" class="left">
                     <div id="dv-start-L" class="current">Başlangıç</div>
                     <div id="dv-zemin-L"></div>
@@ -247,6 +51,19 @@
                     <div id="dv-finish-R" class="done">İndirme hazırlanacak</div>
                 </div>
             </div>
+
+            <div id="dv-progress-error">
+                <ul class="no-ul">
+                    <li>
+                        <span id="spn-error-message">Beklenmeyen bir hata oluştu. Lütfen daha sonra tekrar deneyiniz.</span>
+                    </li>
+                    <li><br></li>
+                    <li>
+                        <div class="dv-button" onclick="toggleProgressModal(0);">Kapat</div>
+                    </li>
+                </ul>
+            </div>
+
         </div>
 
     </div>
@@ -256,6 +73,32 @@
 
 <script type="text/javascript">
     "use strict";
+
+    function toggleProgressError(isVisible) {
+        let progressMainWrap = document.querySelector('#dv-progress-main-wrap');
+        let progressErrorDiv = document.querySelector('#dv-progress-error');
+
+        if (isVisible) {
+            progressMainWrap.classList.add('fadingOut');
+            progressErrorDiv.style.width = '100%';
+            progressErrorDiv.style.height = '100%';
+            progressErrorDiv.classList.add('fadingIn');
+        } else {
+            progressErrorDiv.style.width = '0';
+            progressErrorDiv.style.height = '0';
+            progressErrorDiv.classList.remove('fadingIn');
+            progressMainWrap.classList.remove('fadingOut');
+        }
+    }
+
+    function closeProgressBoxLater() {
+        setTimeout(function () {
+            let toServerBtn = document.querySelector('#btnBestele');
+            toServerBtn.style.color = '';
+            toServerBtn.style.pointerEvents = '';
+            toggleProgressModal(false);
+        }, 2000);
+    }
 
     function toggleProgressModal(isVisible) {
         let modal = document.getElementById('dv-modal-outer');
@@ -289,6 +132,7 @@
     }
 
     function resetProgressStatus() {
+        toggleProgressError(0);
         mParams.lastStatus = null;
         document.querySelector('#dv-progress-wrap-L').innerHTML = '' +
             '<div id="dv-start-L" class="current">Başlangıç</div>' +
@@ -737,7 +581,7 @@
         }
     }
 
-    function besteleButtonClick(e, sender) {
+    function toServerBtnClick(e, sender) {
         sender.style.color = '#ddd';
         sender.style.pointerEvents = 'none';
         e.stopPropagation();
@@ -827,7 +671,7 @@
                     console.log(song);
                     setProgressStatus('Meyan bestelendi', 'meyan', false);
                     setTimeout(function () {
-                        setProgressStatus('<a href="' + song['mu2'] + '" download>İndirme hazır ↯</a>', 'finish', true);
+                        setProgressStatus('<a onclick="closeProgressBoxLater();" href="' + song['mu2'] + '" download>İndirme hazır ↯</a>', 'finish', true);
                     }, 500);
                 }
 
@@ -836,8 +680,13 @@
                         updateCompositionProgress(status_url);
                     }, 2000);
                 }
+
+                if (state !== 'PENDING' && state !== 'PROGRESS' && state !== 'SUCCESS') {
+                    toggleProgressError(true);
+                }
+
             } else {
-                console.log('=== Error ===');
+                toggleProgressError(true);
             }
         };
         xhr.send();
@@ -912,15 +761,15 @@
     }
 
     function allowNewInsertion(allow) {
-        let besteleButton = document.getElementById('btnBestele');
+        let toServerBtn = document.getElementById('btnBestele');
         if (allow) {
             mParams.allowInsert = true;
-            besteleButton.style.color = '#ddd';
-            besteleButton.style.pointerEvents = 'none';
+            toServerBtn.style.color = '#ddd';
+            toServerBtn.style.pointerEvents = 'none';
         } else {
             mParams.allowInsert = false;
-            besteleButton.style.color = '';
-            besteleButton.style.pointerEvents = '';
+            toServerBtn.style.color = '';
+            toServerBtn.style.pointerEvents = '';
             if (document.querySelector('.tmm-menu-btn.dur-btn.clicked')) {
                 document.querySelector('.tmm-menu-btn.dur-btn.clicked').click();
             }
@@ -1134,7 +983,7 @@
         toServerBtn.className = 'tmm-menu-btn-no';
         toServerBtn.innerHTML = '<span class="spn-button-text">Bestele!</span>';
         toServerBtn.addEventListener('click', function (e) {
-            besteleButtonClick(e, this);
+            toServerBtnClick(e, this);
         });
 
         dvUIBtns.appendChild(toServerBtn);
