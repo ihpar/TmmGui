@@ -13,6 +13,8 @@ app.config['SECRET_KEY'] = 'lorem-ipman'
 
 app.config['CELERY_BROKER_URL'] = 'redis://localhost:6379/0'
 app.config['CELERY_RESULT_BACKEND'] = 'redis://localhost:6379/0'
+app.config['CELERY_TASK_SERIALIZER'] = 'json'
+app.config['CELERY_ACCEPT_CONTENT'] = ['json']
 
 celery = Celery(app.name, broker=app.config['CELERY_BROKER_URL'])
 celery.conf.update(app.config)
