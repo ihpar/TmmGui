@@ -670,7 +670,9 @@ def song_2_mus(song, makam, title, oh_manager, note_dict, time_sig, mcs, second_
     file_name = title + '.mu2'
 
     if to_browser:
-        song_path = os.path.join('static', 'downloadables', file_name)
+        # TODO: change original
+        # song_path = os.path.join('static', 'downloadables', file_name)
+        song_path = site_globals.src_root + 'static/downloadables/' + file_name
     else:
         song_path = os.path.join(os.path.abspath('..'), 'songs', makam, file_name)
 
