@@ -749,28 +749,34 @@ def compose_zemin(makam, starters):
     dir_path = site_globals.prj_root + 'songs/cp_songs/' + makam
     set_size = 8
     measure_cnt = 4
+    note_dict = NCDictionary()
+    oh_manager = OhManager(makam)
+
     if makam == 'hicaz':
-        note_dict = NCDictionary()
-        oh_manager = OhManager(makam)
         time_sig = Fraction(9, 8)
         models_a = [load_model(makam, 'sec_AW9_v61'), load_model(makam, 'sec_AW10_v62'), load_model(makam, 'b_decider_v_ia7')]
         lo, hi = 0.15, 0.35
         cp = CandidatePicker(makam, hicaz_parts.hicaz_songs, ['I', 'A'], dir_path, note_dict, oh_manager, set_size)
+    else:  # makam = nihavent
+        time_sig = Fraction(8, 8)
+        models_a = [load_model(makam, 'sec_IAW1_v101'), load_model(makam, 'sec_IAW2_v102'), load_model(makam, 'b_decider_v_ia2')]
+        lo, hi = 0.15, 0.35
+        cp = CandidatePicker(makam, nihavent_parts.nihavent_songs, ['I', 'A'], dir_path, note_dict, oh_manager, set_size)
 
-        part_a = compose_v2(makam, time_sig, measure_cnt, starters, models_a, set_size, lo, hi, cp, note_dict, oh_manager, from_array=True)
-        if len(part_a) == 0:
-            return {'type': 'error',
-                    'msg': 'empty zemin'}
+    part_a = compose_v2(makam, time_sig, measure_cnt, starters, models_a, set_size, lo, hi, cp, note_dict, oh_manager, from_array=True)
+    if len(part_a) == 0:
+        return {'type': 'error',
+                'msg': 'empty zemin'}
 
-        return {'type': 'success',
-                'makam': makam,
-                'dir_path': dir_path,
-                'set_size': set_size,
-                'measure_cnt': measure_cnt,
-                'note_dict': note_dict,
-                'oh_manager': oh_manager,
-                'time_sig': time_sig,
-                'part_a': part_a}
+    return {'type': 'success',
+            'makam': makam,
+            'dir_path': dir_path,
+            'set_size': set_size,
+            'measure_cnt': measure_cnt,
+            'note_dict': note_dict,
+            'oh_manager': oh_manager,
+            'time_sig': time_sig,
+            'part_a': part_a}
 
 
 def compose_nakarat(makam, dir_path, set_size, measure_cnt, note_dict, oh_manager, time_sig, part_a):
@@ -779,15 +785,21 @@ def compose_nakarat(makam, dir_path, set_size, measure_cnt, note_dict, oh_manage
         enders = ['nakarat_end_v2', 'nakarat_end_v1']
         models_b = [load_model(makam, 'sec_BW11_v61'), load_model(makam, 'sec_BW12_v62'), load_model(makam, 'b_decider_v_b8')]
         cp = CandidatePicker(makam, hicaz_parts.hicaz_songs, ['B'], dir_path, note_dict, oh_manager, set_size)
-        part_b = compose_v2(makam, time_sig, measure_cnt, part_a, models_b, set_size, lo, hi, cp, note_dict, oh_manager, by_part=True)
-        second_rep = compose_ending(makam, enders, part_b, time_sig, measure_cnt, note_dict, oh_manager, lo, hi)
-        if len(part_b) == 0:
-            return {'type': 'error',
-                    'msg': 'empty nakarat'}
+    else:  # makam = nihavent
+        lo, hi = 0.10, 0.30
+        enders = ['nakarat_end_v2', 'nakarat_end_v1']
+        models_b = [load_model(makam, 'sec_BW1_v101'), load_model(makam, 'sec_BW2_v102'), load_model(makam, 'b_decider_v_b2')]
+        cp = CandidatePicker(makam, nihavent_parts.nihavent_songs, ['B'], dir_path, note_dict, oh_manager, set_size)
 
-        return {'type': 'success',
-                'part_b': part_b,
-                'second_rep': second_rep}
+    part_b = compose_v2(makam, time_sig, measure_cnt, part_a, models_b, set_size, lo, hi, cp, note_dict, oh_manager, by_part=True)
+    second_rep = compose_ending(makam, enders, part_b, time_sig, measure_cnt, note_dict, oh_manager, lo, hi)
+    if len(part_b) == 0:
+        return {'type': 'error',
+                'msg': 'empty nakarat'}
+
+    return {'type': 'success',
+            'part_b': part_b,
+            'second_rep': second_rep}
 
 
 def compose_meyan(makam, dir_path, set_size, measure_cnt, note_dict, oh_manager, time_sig, part_b):
@@ -795,13 +807,18 @@ def compose_meyan(makam, dir_path, set_size, measure_cnt, note_dict, oh_manager,
         lo, hi = 0.10, 0.30
         models_c = [load_model(makam, 'sec_CW1_v61'), load_model(makam, 'sec_CW2_v62'), load_model(makam, 'b_decider_v_c9')]
         cp = CandidatePicker(makam, hicaz_parts.hicaz_songs, ['C'], dir_path, note_dict, oh_manager, set_size)
-        part_c = compose_v2(makam, time_sig, measure_cnt, part_b, models_c, set_size, lo, hi, cp, note_dict, oh_manager, by_part=True)
-        if len(part_c) == 0:
-            return {'type': 'error',
-                    'msg': 'empty meyan'}
+    else:  # makam = nihavent
+        lo, hi = 0.05, 0.20
+        models_c = [load_model(makam, 'sec_CW1_v101'), load_model(makam, 'sec_CW2_v102'), load_model(makam, 'b_decider_v_c2')]
+        cp = CandidatePicker(makam, nihavent_parts.nihavent_songs, ['C'], dir_path, note_dict, oh_manager, set_size)
 
-        return {'type': 'success',
-                'part_c': part_c}
+    part_c = compose_v2(makam, time_sig, measure_cnt, part_b, models_c, set_size, lo, hi, cp, note_dict, oh_manager, by_part=True)
+    if len(part_c) == 0:
+        return {'type': 'error',
+                'msg': 'empty meyan'}
+
+    return {'type': 'success',
+            'part_c': part_c}
 
 
 def main():
