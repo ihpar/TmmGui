@@ -1,7 +1,13 @@
+import site_globals
+
+
 class NCDictionary:
     def __init__(self):
-        self.__src_file = 'sorted_note_corpus.txt'
-        self.__dur_src_file = 'sorted_dur_corpus.txt'
+        # TODO: change original
+        self.__src_file = site_globals.src_root + 'sorted_note_corpus.txt'
+        self.__dur_src_file = site_globals.src_root + 'sorted_dur_corpus.txt'
+        # self.__src_file = 'sorted_note_corpus.txt'
+        # self.__dur_src_file = 'sorted_dur_corpus.txt'
         self.__note_dict_1 = {}
         self.__note_dict_2 = {}
         self.__note_dict_rev_1 = {}

@@ -3,6 +3,7 @@ import note_translator
 from mu2_reader import decompose_mu2
 import numpy as np
 import random
+import site_globals
 
 
 class CandidatePicker:
@@ -43,7 +44,9 @@ class CandidatePicker:
             self.probabilities[k] = self.probabilities[k] / total
 
         total = 0
-        with open(makam + '--nc_corpus.txt', 'r') as crp:
+        # TODO: change
+        # with open(makam + '--nc_corpus.txt', 'r') as crp:
+        with open(site_globals.src_root + makam + '--nc_corpus.txt', 'r') as crp:
             songs = crp.read().splitlines()
             for song in songs:
                 notes = song.split(' ')

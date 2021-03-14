@@ -1,9 +1,14 @@
+import site_globals
+
+
 class DurTranslator:
     def __init__(self, makam):
         self.__makam = makam
         self.__dur_to_int = {}
         self.__int_to_dur = {}
-        with open(self.__makam + '_sorted_dur_corpus.txt', 'r') as f:
+        # TODO: change original
+        # with open(self.__makam + '_sorted_dur_corpus.txt', 'r') as f:
+        with open(site_globals.src_root + self.__makam + '_sorted_dur_corpus.txt', 'r') as f:
             lines = f.read().splitlines()
             i = 1
             for line in lines:

@@ -18,6 +18,8 @@ import math
 from candidate_picker import CandidatePicker
 from nakarat_ender import make_second_rep
 
+import site_globals
+
 # import seaborn as sns
 
 
@@ -740,7 +742,9 @@ def compose_zemin(makam, starters):
     else:
         makam = 'nihavent'
 
-    dir_path = os.path.join(os.path.abspath(os.path.join(os.getcwd(), os.pardir)), 'songs', 'cp_songs', makam)
+    # TODO: change original
+    # dir_path = os.path.join(os.path.abspath(os.path.join(os.getcwd(), os.pardir)), 'songs', 'cp_songs', makam)
+    dir_path = site_globals.prj_root + 'songs/cp_songs/' + makam
     set_size = 8
     measure_cnt = 4
     if makam == 'hicaz':
@@ -750,6 +754,7 @@ def compose_zemin(makam, starters):
         models_a = [load_model(makam, 'sec_AW9_v61'), load_model(makam, 'sec_AW10_v62'), load_model(makam, 'b_decider_v_ia7')]
         lo, hi = 0.15, 0.35
         cp = CandidatePicker(makam, hicaz_parts.hicaz_songs, ['I', 'A'], dir_path, note_dict, oh_manager, set_size)
+
         part_a = compose_v2(makam, time_sig, measure_cnt, starters, models_a, set_size, lo, hi, cp, note_dict, oh_manager, from_array=True)
         if len(part_a) == 0:
             return {'type': 'error',

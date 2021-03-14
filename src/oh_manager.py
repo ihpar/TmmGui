@@ -1,4 +1,5 @@
 import numpy as np
+import site_globals
 
 
 class OhManager:
@@ -6,7 +7,9 @@ class OhManager:
         self.__nd_2_num = {}
         self.__num_2_nd = {}
         self.__total = 0
-        with open(makam + '--ndsc.txt', 'r') as f:
+        # TODO: change original
+        # with open(makam + '--ndsc.txt', 'r') as f:
+        with open(site_globals.src_root + makam + '--ndsc.txt', 'r') as f:
             nds = f.read().splitlines()
             for i, nd in enumerate(nds):
                 self.__nd_2_num[nd] = i

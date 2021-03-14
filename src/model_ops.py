@@ -1,4 +1,5 @@
 import os
+import site_globals
 
 from tensorflow.keras.models import Sequential, model_from_json
 from tensorflow.keras.layers import Dense, LSTM, Dropout, Activation
@@ -124,7 +125,9 @@ def save_model(makam, model_name, model):
 
 
 def load_model(makam, model_name, comp=True):
-    path = os.path.join(os.path.abspath('..'), 'models', makam)
+    # TODO: change original
+    # path = os.path.join(os.path.abspath('..'), 'models', makam)
+    path = site_globals.prj_root + 'models/' + makam
     json_path = os.path.join(path, model_name + '.json')
     w_path = os.path.join(path, model_name + '.h5')
 

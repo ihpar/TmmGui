@@ -1,9 +1,14 @@
+import site_globals
+
+
 class NoteTranslator:
     def __init__(self, makam):
         self.__makam = makam
         self.__note_to_int = {}
         self.__int_to_note = {}
-        with open(self.__makam + '_sorted_note_corpus.txt', 'r') as f:
+        # TODO: change original
+        # with open(self.__makam + '_sorted_note_corpus.txt', 'r') as f:
+        with open(site_globals.src_root + self.__makam + '_sorted_note_corpus.txt', 'r') as f:
             lines = f.read().splitlines()
             i = 1
             for line in lines:
